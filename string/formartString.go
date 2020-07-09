@@ -6,7 +6,8 @@ import (
 )
 
 func main() {
-
+	var result = formatString([]interface{}{"name"})
+	fmt.Println("结果：", result)
 }
 
 func getRangeData(res map[string]interface{}, keys []string) (in interface{}) {
@@ -48,6 +49,12 @@ func formatString(in interface{}) (word string) {
 		break
 	case reflect.Float64:
 		word = fmt.Sprintf("%.0f", in.(float64))
+		break
+	case reflect.Slice:
+		var arr, ok = in.([]interface{})
+		if ok && len(arr) > 0 {
+			word = formatString(arr[0])
+		}
 		break
 	}
 	return

@@ -5,11 +5,13 @@ import (
 	"errors"
 	"fmt"
 	"github.com/reactivex/rxgo/v2"
+	rxGo4 "luci/rxGo/rxGo"
 	"time"
 )
 
 func main() {
-	rxGo5()
+	//rxGo5()
+	rxGo6("2")
 }
 
 func rxGo() {
@@ -129,16 +131,40 @@ func rxGo5() {
 	time.Sleep(time.Second * 4)
 }
 
-func rxGO6(day string) {
-	Create(func(next NextHandler) {
-		next.OnError(errors.New("失败"))
-		next.OnNext(&Event{Data: true})
-	}).SetRetry(3).Subscribe(Observer{
-		OnNext: func(event *Event) {
-			fmt.Println(day, "成功")
+func rxGo6(day string) {
+	var num = 0
+
+	rxGo4.Create(func(next rxGo4.NextHandler) {
+		num++
+		if num > 2 {
+			next.OnNext(&rxGo4.Event{Data: 22})
+		} else {
+			next.OnError(errors.New(fmt.Sprintf("第%d次失败状态", num)))
+		}
+	}).Timer(1).SetRetry(3).Subscribe(rxGo4.Observer{
+		OnNext: func(event *rxGo4.Event) {
+			fmt.Println("成功", event.Data)
 		},
 		OnError: func(err error) {
-			fmt.Println(day, "失败")
+			fmt.Println("失败", err.Error())
+		},
+		OnComplete: func() {
+			fmt.Println("完成")
+		},
+	})
+	time.Sleep(time.Minute)
+
+	rxGo4.Create(func(handler rxGo4.NextHandler) {
+
+	}).Subscribe(rxGo4.Observer{
+		OnNext: func(event *rxGo4.Event) {
+
+		},
+		OnError: func(err error) {
+
+		},
+		OnComplete: func() {
+
 		},
 	})
 }
