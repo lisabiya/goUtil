@@ -2,7 +2,6 @@ package rxGo
 
 import (
 	"errors"
-	"fmt"
 )
 
 func Create(task func(NextHandler)) (observer *Observable) {
@@ -13,41 +12,55 @@ func Create(task func(NextHandler)) (observer *Observable) {
 
 func (observable *Observable) Subscribe(observer Observer) {
 	observable.observer = &observer
-	observable.wg = cwgInstance()
-	observable.wg.Add(1)
+	observable.done = false
 	go func() {
 		defer func() {
 			// 获取异常信息
-			if err := recover(); err != nil {
-				fmt.Println(err)
-				observable.OnError(errors.New("获取异常信息"))
+			if rsp := recover(); rsp != nil {
+				observable.retryTimes = observable.times
+				err, ok := rsp.(error)
+				if ok {
+					observable.OnError(err)
+				} else {
+					str, ok := rsp.(string)
+					if ok {
+						observable.OnError(errors.New(str))
+					} else {
+						observable.OnError(errors.New("未知错误"))
+					}
+				}
+				observable.OnComplete()
 			}
 		}()
 		//
 		observable.isTimeout()
-
 		observable.run()
-		//
-		observable.wg.Wait()
-		observable.OnComplete()
 	}()
 }
 
 func (observable *Observable) OnNext(event *Event) {
+	if observable.done {
+		return
+	}
 	if observable.observer != nil {
 		observable.observer.OnNext(event)
 	}
-	observable.wg.Done()
 }
+
+//程序错误
 func (observable *Observable) OnError(err error) {
+	if observable.done {
+		return
+	}
 	if observable.observer != nil {
 		observable.observer.OnError(err)
 	}
 	observable.retryOnErr()
 }
 
-//当程序走完时
+//程序完成回调，由调用者自行控制
 func (observable *Observable) OnComplete() {
+	observable.done = true
 	if observable.observer != nil {
 		observable.observer.OnComplete()
 	}

@@ -1,7 +1,6 @@
 package rxGo
 
 import (
-	"sync"
 	"time"
 )
 
@@ -9,6 +8,7 @@ type (
 	Event struct {
 		Data interface{}
 	}
+
 	NextHandler interface {
 		OnNext(*Event)
 		OnError(err error)
@@ -17,7 +17,7 @@ type (
 
 	Observable struct {
 		observer   *Observer
-		wg         *CustomWaitGroup
+		done       bool
 		times      int
 		delayTime  int
 		timeout    int
@@ -31,58 +31,58 @@ type (
 		OnComplete func()
 	}
 
-	CustomWaitGroup struct {
-		Count int
-		Wg    *sync.WaitGroup
-	}
+	//CustomWaitGroup struct {
+	//	Count int
+	//	Wg    *sync.WaitGroup
+	//}
 )
 
 func (observable *Observable) run() {
+	if observable.done {
+		return
+	}
 	if observable.delayTime > 0 {
 		time.Sleep(time.Second * time.Duration(observable.delayTime))
 	}
 	observable.task(observable)
-
 }
 
 func (observable *Observable) retryOnErr() {
 	if observable.retryTimes < observable.times {
 		observable.retryTimes = observable.retryTimes + 1
 		observable.run()
-	} else {
-		observable.wg.Done()
 	}
 }
 func (observable *Observable) isTimeout() {
 	if observable.timeout != 0 {
 		go func() {
 			time.Sleep(time.Second * time.Duration(observable.timeout))
-			observable.wg.Done()
+			observable.OnComplete()
 		}()
 	}
 }
 
-func cwgInstance() *CustomWaitGroup {
-	return &CustomWaitGroup{
-		Count: 0,
-		Wg:    &sync.WaitGroup{},
-	}
-}
-
-func (wg *CustomWaitGroup) Add(delta int) {
-	wg.Count = wg.Count + delta
-	wg.Wg.Add(delta)
-}
-
-func (wg *CustomWaitGroup) Done() {
-	if wg.Count > 0 {
-		wg.Add(-wg.Count)
-	}
-}
-
-func (wg *CustomWaitGroup) Wait() {
-	wg.Wg.Wait()
-}
+//func cwgInstance() *CustomWaitGroup {
+//	return &CustomWaitGroup{
+//		Count: 0,
+//		Wg:    &sync.WaitGroup{},
+//	}
+//}
+//
+//func (wg *CustomWaitGroup) Add(delta int) {
+//	wg.Count = wg.Count + delta
+//	wg.Wg.Add(delta)
+//}
+//
+//func (wg *CustomWaitGroup) Done() {
+//	if wg.Count > 0 {
+//		wg.Add(-wg.Count)
+//	}
+//}
+//
+//func (wg *CustomWaitGroup) Wait() {
+//	wg.Wg.Wait()
+//}
 
 //
 /**************操作符***************/

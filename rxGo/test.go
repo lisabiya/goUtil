@@ -155,7 +155,7 @@ func rxGo6() {
 	time.Sleep(time.Minute)
 
 	rxGo4.Create(func(handler rxGo4.NextHandler) {
-
+		handler.OnComplete()
 	}).Subscribe(rxGo4.Observer{
 		OnNext: func(event *rxGo4.Event) {
 
@@ -170,41 +170,42 @@ func rxGo6() {
 }
 
 func rxGo7() {
-	//var num = 0
-	//rxGo4.Create(func(next rxGo4.NextHandler) {
-	//	num++
-	//	if num > 2 {
-	//		next.OnNext(&rxGo4.Event{Data: 22})
-	//	} else {
-	//		next.OnError(errors.New(fmt.Sprintf("第%d次失败状态", num)))
-	//	}
-	//}).Timer(1).SetRetry(2).Subscribe(rxGo4.Observer{
-	//	OnNext: func(event *rxGo4.Event) {
-	//		fmt.Println("成功", event.Data)
-	//	},
-	//	OnError: func(err error) {
-	//		fmt.Println("失败", err.Error())
-	//	},
-	//	OnComplete: func() {
-	//		fmt.Println("完成")
-	//	},
-	//})
-
-	rxGo4.Create(func(handler rxGo4.NextHandler) {
-		handler.OnNext(&rxGo4.Event{Data: "s"})
-		time.Sleep(time.Second * 3)
-		handler.OnNext(&rxGo4.Event{Data: "l"})
-
-	}).Subscribe(rxGo4.Observer{
+	var num = 0
+	rxGo4.Create(func(next rxGo4.NextHandler) {
+		num++
+		if num > 2 {
+			for i := 1; i < 10; i++ {
+				next.OnNext(&rxGo4.Event{Data: "返回数据信息"})
+			}
+		} else {
+			next.OnError(errors.New(fmt.Sprintf("第%d次失败状态", num)))
+		}
+	}).Timer(1).SetRetry(2).Subscribe(rxGo4.Observer{
 		OnNext: func(event *rxGo4.Event) {
-			fmt.Println("OnNext", event.Data)
+			fmt.Println("成功", event.Data)
 		},
 		OnError: func(err error) {
-			fmt.Println("OnError")
+			fmt.Println("失败", err.Error())
 		},
 		OnComplete: func() {
-			fmt.Println("OnComplete")
+			fmt.Println("完成")
 		},
 	})
+
+	//rxGo4.Create(func(handler rxGo4.NextHandler) {
+	//	handler.OnNext(&rxGo4.Event{Data: "s"})
+	//	time.Sleep(time.Second * 3)
+	//	handler.OnError(errors.New("sd"))
+	//}).SetRetry(2).Subscribe(rxGo4.Observer{
+	//	OnNext: func(event *rxGo4.Event) {
+	//		fmt.Println("OnNext", event.Data)
+	//	},
+	//	OnError: func(err error) {
+	//		fmt.Println("OnError", err)
+	//	},
+	//	OnComplete: func() {
+	//		fmt.Println("OnComplete")
+	//	},
+	//})
 	time.Sleep(time.Minute)
 }
