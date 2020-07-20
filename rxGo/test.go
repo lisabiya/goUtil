@@ -11,7 +11,7 @@ import (
 
 func main() {
 	//rxGo5()
-	rxGo6("2")
+	rxGo7()
 }
 
 func rxGo() {
@@ -131,7 +131,7 @@ func rxGo5() {
 	time.Sleep(time.Second * 4)
 }
 
-func rxGo6(day string) {
+func rxGo6() {
 	var num = 0
 
 	rxGo4.Create(func(next rxGo4.NextHandler) {
@@ -167,4 +167,44 @@ func rxGo6(day string) {
 
 		},
 	})
+}
+
+func rxGo7() {
+	//var num = 0
+	//rxGo4.Create(func(next rxGo4.NextHandler) {
+	//	num++
+	//	if num > 2 {
+	//		next.OnNext(&rxGo4.Event{Data: 22})
+	//	} else {
+	//		next.OnError(errors.New(fmt.Sprintf("第%d次失败状态", num)))
+	//	}
+	//}).Timer(1).SetRetry(2).Subscribe(rxGo4.Observer{
+	//	OnNext: func(event *rxGo4.Event) {
+	//		fmt.Println("成功", event.Data)
+	//	},
+	//	OnError: func(err error) {
+	//		fmt.Println("失败", err.Error())
+	//	},
+	//	OnComplete: func() {
+	//		fmt.Println("完成")
+	//	},
+	//})
+
+	rxGo4.Create(func(handler rxGo4.NextHandler) {
+		handler.OnNext(&rxGo4.Event{Data: "s"})
+		time.Sleep(time.Second * 3)
+		handler.OnNext(&rxGo4.Event{Data: "l"})
+
+	}).Subscribe(rxGo4.Observer{
+		OnNext: func(event *rxGo4.Event) {
+			fmt.Println("OnNext", event.Data)
+		},
+		OnError: func(err error) {
+			fmt.Println("OnError")
+		},
+		OnComplete: func() {
+			fmt.Println("OnComplete")
+		},
+	})
+	time.Sleep(time.Minute)
 }

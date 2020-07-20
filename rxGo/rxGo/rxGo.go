@@ -1,34 +1,8 @@
 package rxGo
 
 import (
-	"sync"
-	"time"
-)
-
-type (
-	Event struct {
-		Data interface{}
-	}
-	NextHandler interface {
-		OnNext(*Event)
-		OnError(err error)
-		OnComplete()
-	}
-
-	Observable struct {
-		observer   *Observer
-		wg         *sync.WaitGroup
-		times      int
-		delayTime  int
-		retryTimes int
-		task       func(NextHandler)
-	}
-
-	Observer struct {
-		OnNext     func(*Event)
-		OnError    func(error)
-		OnComplete func()
-	}
+	"errors"
+	"fmt"
 )
 
 func Create(task func(NextHandler)) (observer *Observable) {
@@ -37,40 +11,26 @@ func Create(task func(NextHandler)) (observer *Observable) {
 	return
 }
 
-/**************Observable***************/
-/**
- *	@params times 失败重试次数
- */
-func (observable *Observable) SetRetry(times int) *Observable {
-	observable.times = times
-	return observable
-}
-
-/**
- *	@params time 延时时间 秒
- */
-func (observable *Observable) Timer(delayTime int) *Observable {
-	observable.delayTime = delayTime
-	return observable
-}
-
-func (observable *Observable) retryOnErr() {
-	if observable.retryTimes < observable.times {
-		observable.retryTimes = observable.retryTimes + 1
-		observable.run()
-	} else {
-		observable.wg.Done()
-	}
-
-}
-
 func (observable *Observable) Subscribe(observer Observer) {
 	observable.observer = &observer
-	observable.wg = &sync.WaitGroup{}
+	observable.wg = cwgInstance()
 	observable.wg.Add(1)
-	observable.run()
-	observable.wg.Wait()
-	observable.OnComplete()
+	go func() {
+		defer func() {
+			// 获取异常信息
+			if err := recover(); err != nil {
+				fmt.Println(err)
+				observable.OnError(errors.New("获取异常信息"))
+			}
+		}()
+		//
+		observable.isTimeout()
+
+		observable.run()
+		//
+		observable.wg.Wait()
+		observable.OnComplete()
+	}()
 }
 
 func (observable *Observable) OnNext(event *Event) {
@@ -91,13 +51,4 @@ func (observable *Observable) OnComplete() {
 	if observable.observer != nil {
 		observable.observer.OnComplete()
 	}
-}
-
-func (observable *Observable) run() {
-	go func() {
-		if observable.delayTime > 0 {
-			time.Sleep(time.Second * time.Duration(observable.delayTime))
-		}
-		observable.task(observable)
-	}()
 }
