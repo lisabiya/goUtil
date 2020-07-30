@@ -8,5 +8,6 @@ require (
 	github.com/mozillazg/go-pinyin v0.18.0
 	github.com/reactivex/rxgo/v2 v2.1.0
 	github.com/tealeg/xlsx v1.0.5
+	github.com/yuin/gopher-lua v0.0.0-20200603152657-dc2b0ca8b37e
 	golang.org/x/net v0.0.0-20200602114024-627f9648deb9
 )
