@@ -4,18 +4,37 @@ import (
 	"github.com/gin-gonic/gin"
 	luasql "github.com/tengattack/gluasql/sqlite3"
 	"github.com/yuin/gopher-lua"
-	"layeh.com/gopher-luar"
+	"luci/lua/db_module"
 	"net/http"
 )
 
 func main() {
-	initRouter()
+	//db.Setup()
+	//initRouter()
+	//db_module.TestDb()
+
+	testUserData()
 }
 
 func initRouter() {
 	r := gin.Default()
 	r.GET("/ping", loadLuaModule)
 	_ = r.Run() // listen and serve on 0.0.0.0:8080
+}
+
+func testUserData() {
+	luaContext := lua.NewState()
+	defer luaContext.Close()
+	//db_module.LoadDBModule(luaContext)
+	db_module.RegisterPersonType(luaContext)
+	if err := luaContext.DoString(`
+        p = person.new("Steeve")
+        print(p:name()) -- "Steeve"
+        p:name("Alice")
+        print(p:name()) -- "Alice"
+    `); err != nil {
+		panic(err)
+	}
 }
 
 func loadLuaModule(c *gin.Context) {
@@ -37,14 +56,13 @@ func loadLuaModule(c *gin.Context) {
 	}
 	ret := luaContext.Get(1) // returned value
 
-	luar.New(luaContext, map[string]string{})
-
 	c.JSON(http.StatusOK, formatSuccess(transLuaValue2Map(ret)))
 }
 
 func getDefaultGinStatus(c *gin.Context) *lua.LState {
 	L := lua.NewState()
 	L.PreloadModule("sqlite3", luasql.Loader)
+	db_module.LoadDBModule(L)
 	var getParams = L.NewFunction(func(state *lua.LState) int {
 		var key = state.ToString(-1)
 		var value = c.Query(key)

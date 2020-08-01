@@ -4,8 +4,22 @@
 --- DateTime: 2020/8/1 11:37
 ---
 gormDB = {}
+local dbModule = require("db_module")
+local json = require("lua/json")
 
+function gormDB.getDB(tableName)
+    local code, tables = dbModule.getDB(tableName)
+    local values = {}
+    for k, v in pairs(tables) do
+        print(json.encode(v))
+        table.insert(values, k, v.Value)
+    end
+    local s = userdata{
 
+    }
+    return code, tables
+end
 
+return gormDB
 
 
