@@ -1,19 +1,22 @@
 package main
 
 import (
+	"fmt"
 	"github.com/gin-gonic/gin"
 	luasql "github.com/tengattack/gluasql/sqlite3"
 	"github.com/yuin/gopher-lua"
+	"luci/db"
 	"luci/lua/db_module"
 	"net/http"
 )
 
 func main() {
-	//db.Setup()
+	db.Setup()
 	//initRouter()
 	//db_module.TestDb()
 
-	testUserData()
+	testMetatable()
+	//testSql()
 }
 
 func initRouter() {
@@ -22,19 +25,42 @@ func initRouter() {
 	_ = r.Run() // listen and serve on 0.0.0.0:8080
 }
 
-func testUserData() {
+func testMetatable() {
 	luaContext := lua.NewState()
 	defer luaContext.Close()
-	//db_module.LoadDBModule(luaContext)
-	db_module.RegisterPersonType(luaContext)
-	if err := luaContext.DoString(`
-        p = person.new("Steeve")
-        print(p:name()) -- "Steeve"
-        p:name("Alice")
-        print(p:name()) -- "Alice"
-    `); err != nil {
+	db_module.RegisterOrmDbType(luaContext)
+	if err := luaContext.DoFile("lua/run.lua"); err != nil {
 		panic(err)
 	}
+	if err := luaContext.CallByParam(lua.P{
+		Fn:      luaContext.GetGlobal("initParams"),
+		NRet:    1,
+		Protect: true,
+	}); err != nil {
+		panic(err)
+		return
+	}
+	ret := luaContext.Get(1) // returned value
+	fmt.Println(transLuaValue2Map(ret))
+}
+
+func testSql() {
+	luaContext := lua.NewState()
+	defer luaContext.Close()
+	luaContext.PreloadModule("sqlite3", luasql.Loader)
+	if err := luaContext.DoFile("lua/nativeSql/test.lua"); err != nil {
+		panic(err)
+	}
+	if err := luaContext.CallByParam(lua.P{
+		Fn:      luaContext.GetGlobal("testSql"),
+		NRet:    1,
+		Protect: true,
+	}); err != nil {
+		panic(err)
+		return
+	}
+	ret := luaContext.Get(1) // returned value
+	fmt.Println(transLuaValue2Map(ret))
 }
 
 func loadLuaModule(c *gin.Context) {
@@ -61,8 +87,6 @@ func loadLuaModule(c *gin.Context) {
 
 func getDefaultGinStatus(c *gin.Context) *lua.LState {
 	L := lua.NewState()
-	L.PreloadModule("sqlite3", luasql.Loader)
-	db_module.LoadDBModule(L)
 	var getParams = L.NewFunction(func(state *lua.LState) int {
 		var key = state.ToString(-1)
 		var value = c.Query(key)
@@ -122,6 +146,9 @@ func transLuaValue2Map(value lua.LValue) interface{} {
 			return list
 		}
 		return deMap
+	} else if value.Type() == lua.LTUserData {
+		var table = value.(*lua.LUserData)
+		return table.Value
 	} else {
 		return value
 	}

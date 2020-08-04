@@ -1,33 +1,56 @@
 package db_module
 
 import (
-	"fmt"
+	"github.com/jinzhu/gorm"
 	lua "github.com/yuin/gopher-lua"
 	luar "layeh.com/gopher-luar"
 	"luci/db"
 )
 
-var exports = map[string]lua.LGFunction{
-	"getDB": getDB,
+const luaOrmDbName = "db_metatable"
+
+type OrmDB struct {
+	DbName string
+	Tag    string
+	Db     *gorm.DB
 }
 
-func LoadDBModule(L *lua.LState) {
-	L.PreloadModule("db_module", loader)
+func RegisterOrmDbType(L *lua.LState) {
+	mt := L.NewTypeMetatable(luaOrmDbName)
+	L.SetGlobal("db_module", mt)
+	// static attributes
+	L.SetField(mt, "new", L.NewFunction(newDb))
+	// methods
+	L.SetField(mt, "__index", L.SetFuncs(L.NewTable(), gormMethods))
 }
 
-func loader(L *lua.LState) int {
-	mod := L.SetFuncs(L.NewTable(), exports)
-	L.Push(mod)
+var gormMethods = map[string]lua.LGFunction{
+	"Tag":    Tag,
+	"DbName": DbName,
+	"Rows":   rows,
+	"Insert": insert,
+}
 
-	L.SetField(mod, "_DEBUG", lua.LBool(false))
-	L.SetField(mod, "_VERSION", lua.LString("0.0.0"))
-
+// Constructor
+func newDb(L *lua.LState) int {
+	var DbName = L.CheckString(1)
+	println(DbName)
+	ormDb := &OrmDB{
+		DbName: DbName,
+		Tag:    "初始化",
+		Db:     db.GetDB().Table(DbName),
+	}
+	ud := L.NewUserData()
+	ud.Value = ormDb
+	L.SetMetatable(ud, L.GetTypeMetatable(luaOrmDbName))
+	L.Push(ud)
 	return 1
 }
 
-func getDB(L *lua.LState) int {
-	var tableName = L.ToString(-1)
-	rows, err := db.GetDB().Table(tableName).Rows()
+func rows(L *lua.LState) int {
+	ormDb := checkDb(L)
+	rows, err := ormDb.Db.Rows()
+	ormDb.Tag = "rows"
 	if err != nil {
 		L.Push(lua.LNumber(1))
 		L.Push(lua.LString(err.Error()))
@@ -65,47 +88,75 @@ func getDB(L *lua.LState) int {
 	return 2
 }
 
-func testUserTable(L *lua.LState) int {
-	ud := L.NewUserData()
-	//L.SetMetatable(ud, L.NewTypeMetatable())
-	L.Push(ud)
+func insert(L *lua.LState) int {
+	ormDb := checkDb(L)
+	//var s = L.CheckTable(2)
+	err := ormDb.Db.Create(&map[string]interface{}{
+		"name": "李雷",
+	}).Error
+	ormDb.Tag = "rows"
+	if err != nil {
+		L.Push(lua.LNumber(1))
+		L.Push(lua.LString(err.Error()))
+		return 2
+	}
+	L.Push(lua.LNumber(0))
+	L.Push(lua.LString("成功"))
 	return 2
 }
 
-func TestDb() {
-	db.Setup()
-	rows, _ := db.GetDB().Table("t_salary").Limit(10).Rows()
-	//返回所有列
-	cols, _ := rows.Columns()
-	//这里表示一行所有列的值，用[]byte表示
-	vals := make([][]byte, len(cols))
-	//这里表示一行填充数据
-	scans := make([]interface{}, len(cols))
-	//这里scans引用vals，把数据填充到[]byte里
-	for k, _ := range vals {
-		scans[k] = &vals[k]
+// Getter and setter for the Person#Name
+func Tag(L *lua.LState) int {
+	p := checkDb(L)
+	L.Push(lua.LString(p.Tag))
+	return 1
+}
+
+// Getter and setter for the Person#Name
+func DbName(L *lua.LState) int {
+	p := checkDb(L)
+	L.Push(lua.LString(p.DbName))
+	return 1
+}
+
+func checkDb(L *lua.LState) *OrmDB {
+	ud := L.CheckUserData(1)
+	if v, ok := ud.Value.(*OrmDB); ok {
+		return v
 	}
-	i := 0
-	result := make(map[int]map[string]string)
-	for rows.Next() {
-		//填充数据
-		rows.Scan(scans...)
-		//每行数据
-		row := make(map[string]string)
-		//把vals中的数据复制到row中
-		for k, v := range vals {
-			key := cols[k]
-			//这里把[]byte数据转成string
-			row[key] = string(v)
+	L.ArgError(1, "person expected")
+	return nil
+}
+
+func transLuaValue2Map(value lua.LValue) interface{} {
+	if value.Type() == lua.LTTable {
+		var deMap = make(map[string]interface{})
+		var list []interface{}
+		var table = value.(*lua.LTable)
+		table.ForEach(func(key lua.LValue, value lua.LValue) {
+			if key.Type() == lua.LTNumber {
+				list = append(list, transLuaValue2Map(value))
+			} else {
+				deMap[key.String()] = transLuaValue2Map(value)
+			}
+		})
+		if len(deMap) > 0 && len(list) > 0 {
+			return map[string]interface{}{
+				"map":  deMap,
+				"list": list,
+			}
 		}
-		//放入结果集
-		fmt.Println(row)
-		result[i] = row
-		i++
-	}
-	//fmt.Println(result)
-	for k, v := range result {
-		fmt.Printf("第%d行", k)
-		fmt.Println(v["gentuanyouid"] + "===>" + v["title"])
+		if len(deMap) > 0 {
+			return deMap
+		}
+		if len(list) > 0 {
+			return list
+		}
+		return deMap
+	} else if value.Type() == lua.LTUserData {
+		var table = value.(*lua.LUserData)
+		return table.Value
+	} else {
+		return value
 	}
 }
