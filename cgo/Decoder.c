@@ -112,7 +112,7 @@ static void print_usage(char* argv[]) {
     printf( "\n" );
 }
 
-int Decoder()
+int Decoder(char* inputPath,char* outPath)
 {
     unsigned long tottime, starttime;
     double    filetime;
@@ -146,9 +146,9 @@ int Decoder()
 
     /* get arguments */
     args = 1;
-    strcpy( bitInFileName,"2020_08_18_09_25_06_769.silk");
+    strcpy( bitInFileName,inputPath);
     args++;
-    strcpy( speechOutFileName, "me.pcm");
+    strcpy( speechOutFileName, outPath);
     args++;
 //    while( args < argc ) {
 //        if( SKP_STR_CASEINSENSITIVE_COMPARE( argv[ args ], "-loss" ) == 0 ) {

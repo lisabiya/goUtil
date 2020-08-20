@@ -1,5 +1,5 @@
 #ifndef HELLO_H
 #define HELLO_H
 
-int Decoder();
+int Decoder(char* inputPath,char* outPath);
 #endif
