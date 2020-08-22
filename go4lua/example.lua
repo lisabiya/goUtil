@@ -1,7 +1,3 @@
--- ensure the lua2go lib is on the LUA_PATH so it will load
--- normally, you'd just put it on the LUA_PATH
-package.path = package.path .. ';../lua/?.lua'
-
 -- load lua2go
 local lua2go = require('go4lua/lua2go')
 

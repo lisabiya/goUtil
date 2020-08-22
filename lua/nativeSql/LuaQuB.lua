@@ -6,6 +6,14 @@
 
 local luaqub, Compile = {}, {}
 
+local function GetTrimStr(sInput)
+    if type(sInput) ~= 'string' then
+        return tostring(sInput)
+    end
+    local x = sInput:match "^%s*(.-)%s*$"
+    return x
+end
+
 local function Trim(sInput)
     if type(sInput) ~= 'string' then
         return
@@ -209,7 +217,7 @@ function luaqub:where(clauses, value, joiner)
         if not joiner then
             joiner = 'and'
         end
-        table.insert(self._where, { join = joiner:upper(), statement = Trim(clauses) .. " " .. Trim(value) })
+        table.insert(self._where, { join = joiner:upper(), statement = ("%s '%s'"):format(GetTrimStr(clauses), GetTrimStr(value)) })
         clauses = nil
     elseif type(clauses) == "table" then
         if not value then
@@ -220,7 +228,7 @@ function luaqub:where(clauses, value, joiner)
             if tonumber(Key) then
                 table.insert(self._where, { join = joiner, statement = Value })
             else
-                table.insert(self._where, { join = joiner, statement = ("%s = %s"):format(Trim(Key), Trim(Value)) })
+                table.insert(self._where, { join = joiner, statement = ("`%s` = '%s'"):format(GetTrimStr(Key), GetTrimStr(Value)) })
             end
         end
         clauses = nil
@@ -353,7 +361,7 @@ function luaqub:insert(tbl, datas)
         if not tonumber(Value) then
             table.insert(tValue, ("'%s'"):format(Trim(Value)))
         else
-            table.insert(tValue, Trim(Value))
+            table.insert(tValue, ("'%d'"):format(Value))
         end
     end
     self._flag, self._insert.cols, self._insert.val, self._insert.tbl = 'insert', tCols, tValue, tbl

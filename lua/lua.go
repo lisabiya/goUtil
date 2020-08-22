@@ -41,7 +41,7 @@ func testMetatable() {
 		return
 	}
 	ret := luaContext.Get(1) // returned value
-	fmt.Println(transLuaValue2Map(ret))
+	fmt.Println("测试数据", transLuaValue2Map(ret))
 }
 
 func testSql() {

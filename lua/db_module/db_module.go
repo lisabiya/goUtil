@@ -1,6 +1,7 @@
 package db_module
 
 import (
+	"fmt"
 	"github.com/jinzhu/gorm"
 	lua "github.com/yuin/gopher-lua"
 	luar "layeh.com/gopher-luar"
@@ -27,14 +28,13 @@ func RegisterOrmDbType(L *lua.LState) {
 var gormMethods = map[string]lua.LGFunction{
 	"Tag":    Tag,
 	"DbName": DbName,
-	"Rows":   rows,
-	"Insert": insert,
+	"Raw":    raw,
+	"Exec":   exec,
 }
 
 // Constructor
 func newDb(L *lua.LState) int {
 	var DbName = L.CheckString(1)
-	println(DbName)
 	ormDb := &OrmDB{
 		DbName: DbName,
 		Tag:    "初始化",
@@ -47,10 +47,11 @@ func newDb(L *lua.LState) int {
 	return 1
 }
 
-func rows(L *lua.LState) int {
+func raw(L *lua.LState) int {
 	ormDb := checkDb(L)
-	rows, err := ormDb.Db.Rows()
-	ormDb.Tag = "rows"
+	var execSql = L.CheckString(2)
+	rows, err := ormDb.Db.Raw(execSql).Rows()
+	ormDb.Tag = "raw"
 	if err != nil {
 		L.Push(lua.LNumber(1))
 		L.Push(lua.LString(err.Error()))
@@ -88,13 +89,12 @@ func rows(L *lua.LState) int {
 	return 2
 }
 
-func insert(L *lua.LState) int {
+func exec(L *lua.LState) int {
 	ormDb := checkDb(L)
-	//var s = L.CheckTable(2)
-	err := ormDb.Db.Create(&map[string]interface{}{
-		"name": "李雷",
-	}).Error
-	ormDb.Tag = "rows"
+	var execSql = L.CheckString(2)
+	fmt.Println(execSql)
+	ormDb.Tag = "exec"
+	err := ormDb.Db.Exec(execSql).Error
 	if err != nil {
 		L.Push(lua.LNumber(1))
 		L.Push(lua.LString(err.Error()))

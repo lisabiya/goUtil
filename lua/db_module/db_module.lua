@@ -15,13 +15,17 @@ end
 
 --获取列表
 ---@return number|table
-function Orm:Rows()
+function Orm:Raw(execSql)
 end
 
+--运行sql
+---@return number|table
+function Orm:Exec(execSql)
+end
+
+--获取标签
+---@return number|table
 function Orm:Tag()
-end
-
-function Orm:Insert(table)
 end
 
 return Orm
