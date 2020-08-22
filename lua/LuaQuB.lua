@@ -217,7 +217,7 @@ function luaqub:where(clauses, value, joiner)
         if not joiner then
             joiner = 'and'
         end
-        table.insert(self._where, { join = joiner:upper(), statement = ("%s '%s'"):format(GetTrimStr(clauses), GetTrimStr(value)) })
+        table.insert(self._where, { join = joiner:upper(), statement = ("%s %s"):format(GetTrimStr(clauses), GetTrimStr(value)) })
         clauses = nil
     elseif type(clauses) == "table" then
         if not value then
@@ -337,7 +337,18 @@ function luaqub:update(tbl, datas)
         error("Unexpected argument #2 to update. Table expected, got " .. type(datas))
         return false
     end
-    self._from, self._flag, self._update = tbl, 'update', datas
+
+    local formatData = {}
+    for Key, Value in pairs(datas) do
+        if tonumber(Key) then
+            error("Unexpected argument is key value" .. type(datas))
+            return false
+        else
+            formatData[("`%s`"):format(GetTrimStr(Key))] = ("'%s'"):format(GetTrimStr(Value))
+        end
+    end
+
+    self._from, self._flag, self._update = tbl, 'update', formatData
     return self
 end
 

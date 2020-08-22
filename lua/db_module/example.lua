@@ -6,32 +6,51 @@
 local example = {}
 --
 local luaDbSqLite = require('lua.db_module.db_module')
-local Builder = require "lua.nativeSql.LuaQuB"
+local Builder = require "lua.LuaQuB"
 local ormDb = luaDbSqLite.new("t_salary")
 
+--增
+function example.insertCol()
+    local object = Builder.new()
+                          :insert("t_salary", { name = "小明18", department = "实习", social_security = 100 })
+    local code, response = ormDb:Exec(tostring(object))
+    print(ormDb:Tag(), response)
+    return code, response
+end
+
+--删
+function example.remove()
+    local object = Builder.new()
+                          :delete()
+                          :from("t_salary")
+                          :where("`social_security` is ", "null")
+    local code, response = ormDb:Exec(tostring(object))
+    print(ormDb:Tag(), response)
+    return code, response
+end
+
+--改
+function example.update()
+    local object = Builder.new()
+                          :update("t_salary", { name = "李雷", department = "油烟清理", social_security = 1500 })
+                          :where("`id` =", "10")
+    local code, response = ormDb:Exec(tostring(object))
+    print(ormDb:Tag(), response)
+    return code, response
+end
+
+--查
 function example.getList()
     local object = Builder.new()
                           :select("*")
                           :from("t_salary")
                           :where({ department = "实习", social_security = 100 }, "and")
-                          :where("`name` = ", "王叔叔", "or")
+                          :where("`name` = ", "'王叔叔'", "or")
                           :limit(10, 2)
 
     local code, tables = ormDb:Raw(tostring(object))
     print(ormDb:Tag(), #tables)
-
     return code, tables
-end
-
-function example.insertCol()
-    local object = Builder.new()
-                          :insert("t_salary",
-            { name = "小明12", department = "实习", social_security = 100 })
-
-    local code, response = ormDb:Exec(tostring(object))
-    print(ormDb:Tag(), response)
-
-    print(code, response)
 end
 
 return example

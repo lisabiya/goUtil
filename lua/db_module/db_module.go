@@ -1,7 +1,6 @@
 package db_module
 
 import (
-	"fmt"
 	"github.com/jinzhu/gorm"
 	lua "github.com/yuin/gopher-lua"
 	luar "layeh.com/gopher-luar"
@@ -92,7 +91,6 @@ func raw(L *lua.LState) int {
 func exec(L *lua.LState) int {
 	ormDb := checkDb(L)
 	var execSql = L.CheckString(2)
-	fmt.Println(execSql)
 	ormDb.Tag = "exec"
 	err := ormDb.Db.Exec(execSql).Error
 	if err != nil {
