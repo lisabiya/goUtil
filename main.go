@@ -6,6 +6,7 @@ import (
 	"io"
 	"io/ioutil"
 	"log"
+	"luci/queue"
 	"net"
 	"net/http"
 	"os"
@@ -14,7 +15,7 @@ import (
 )
 
 func main() {
-	fmt.Println("启动！")
+	//fmt.Println("启动！")
 	//socket()
 	//udpSocket()
 
@@ -22,14 +23,18 @@ func main() {
 	//dialogUdp()
 	//test()
 
-	done := make(chan bool)
-	for i := 1; i < 50; i++ {
-		fmt.Println("sendRequest")
-		time.Sleep(1000 * time.Millisecond)
-		go dialogSocks5()
-	}
-	<-done
+	//done := make(chan bool)
+	//for i := 1; i < 50; i++ {
+	//	fmt.Println("sendRequest")
+	//	time.Sleep(1000 * time.Millisecond)
+	//	go dialogSocks5()
+	//}
+	//<-done
 	//dialogSocks5()
+	//lua.InitRouter()
+	//neo.InitNeo4j()
+	queue.TestQueue()
+	//httpSimpleTest()
 }
 
 func socket() {

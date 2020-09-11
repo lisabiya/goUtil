@@ -1,4 +1,4 @@
-package main
+package lua
 
 import (
 	"fmt"
@@ -10,16 +10,17 @@ import (
 	"net/http"
 )
 
-func main() {
+//func main() {
+//	db.Setup()
+//	initRouter()
+//	//db_module.TestDb()
+//
+//	//testMetatable()
+//	//testSql()
+//}
+
+func InitRouter() {
 	db.Setup()
-	//initRouter()
-	//db_module.TestDb()
-
-	testMetatable()
-	//testSql()
-}
-
-func initRouter() {
 	r := gin.Default()
 	r.GET("/ping", loadLuaModule)
 	_ = r.Run() // listen and serve on 0.0.0.0:8080
@@ -65,6 +66,7 @@ func testSql() {
 
 func loadLuaModule(c *gin.Context) {
 	luaContext := getDefaultGinStatus(c)
+	db_module.RegisterOrmDbType(luaContext)
 	defer luaContext.Close()
 	err := luaContext.DoFile("lua/run.lua")
 	if err != nil {

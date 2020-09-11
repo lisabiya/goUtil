@@ -12,7 +12,10 @@ local ormDb = luaDbSqLite.new("t_salary")
 --增
 function example.insertCol()
     local object = Builder.new()
-                          :insert("t_salary", { name = "小明18", department = "实习", social_security = 100 })
+                          :insert("t_salary",
+            { name = "小明", department = "实习", social_security = 1000,
+              provident_fund = 1500, salary = 4000, salary_time = 1595735266
+            })
     local code, response = ormDb:Exec(tostring(object))
     print(ormDb:Tag(), response)
     return code, response
@@ -20,10 +23,13 @@ end
 
 --删
 function example.remove()
+    local name = "小明"
+
     local object = Builder.new()
                           :delete()
                           :from("t_salary")
-                          :where("`social_security` is ", "null")
+                          :where("`name` like ", "'%" .. name .. "%'")
+    --:where("`social_security` is ", "null")
     local code, response = ormDb:Exec(tostring(object))
     print(ormDb:Tag(), response)
     return code, response
@@ -31,12 +37,14 @@ end
 
 --改
 function example.update()
+    local updateData = { provident_fund = 6000, salary = 20000, salary_time = 1522036066 }
+    local name = "王叔叔"
     local object = Builder.new()
-                          :update("t_salary", { name = "李雷", department = "油烟清理", social_security = 1500 })
-                          :where("`id` =", "10")
+                          :update("t_salary", updateData)
+                          :where("`name` like ", "'%" .. name .. "%'")
     local code, response = ormDb:Exec(tostring(object))
     print(ormDb:Tag(), response)
-    return code, response
+    return code, { response = response, data = updateData }
 end
 
 --查
@@ -44,13 +52,13 @@ function example.getList()
     local object = Builder.new()
                           :select("*")
                           :from("t_salary")
-                          :where({ department = "实习", social_security = 100 }, "and")
+                          :where("department in","("..table.concat({ "'实习'", "'油烟清理'" }, ',')..")")
                           :where("`name` = ", "'王叔叔'", "or")
-                          :limit(10, 2)
+                          :limit(10, 0)
 
     local code, tables = ormDb:Raw(tostring(object))
     print(ormDb:Tag(), #tables)
-    return code, tables
+    return code, { count = #tables, list = tables }
 end
 
 return example

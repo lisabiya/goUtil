@@ -7,14 +7,9 @@ end
 
 function initParams()
     local example = require('lua.db_module.example')
-    local code, tables = example.update()
+    local name = getParams("name")
+    print(name)
+    local code, tables = example.getList()
 
     return { code = code, response = tables }
 end
-
-local Builder = require "lua.LuaQuB"
-
-local object = Builder.new()
-                      :update("t_salary", { name = "李雷", department = "油烟清理", social_security = 1500 })
-                      :where("`id` =", "10")
-print(tostring(object))
