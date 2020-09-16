@@ -20,6 +20,7 @@ func getRangeData(res map[string]interface{}, keys []string) (in interface{}) {
 	return
 }
 
+//不同数据转string
 func formatString(in interface{}) (word string) {
 	if in == nil {
 		return ""

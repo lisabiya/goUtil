@@ -21,7 +21,7 @@ import (
 )
 
 func main() {
-	test("2020_08_18_09_25_06_769.silk", "cgo/testVoice/newVoice.pcm")
+	test("cgo/testVoice/2020_08_18_09_25_06_769.silk", "cgo/testVoice/newVoice.pcm")
 	//testCmd()
 }
 
@@ -43,7 +43,7 @@ func transPcmToMp3(inputPath, OutputPath string) {
 	overwrite := true
 	audioCodec := "pcm_s16le"
 	audioChannels := 2
-	audioRate := 16000
+	audioRate := 12000
 	opts := ffmpeg.Options{
 		Overwrite:     &overwrite,
 		OutputFormat:  &format,
@@ -52,7 +52,7 @@ func transPcmToMp3(inputPath, OutputPath string) {
 		AudioCodec:    &audioCodec,
 	}
 	ffmpegConf := &ffmpeg.Config{
-		FfmpegBinPath: "ffmpeg",
+		FfmpegBinPath: "cgo/ffmpeg",
 	}
 	progress, err := ffmpeg.
 		New(ffmpegConf).

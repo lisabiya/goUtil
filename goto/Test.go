@@ -8,7 +8,9 @@ import (
 )
 
 func main() {
-	testChan()
+	//testChan()
+
+	testGoto()
 }
 
 func testChan() {
@@ -29,26 +31,29 @@ func testChan() {
 }
 
 func testGoto() {
-	// 消息列表
-	ch := make(chan string, 255)
-	// 定时从ch中取出所有数据
-	ch <- "你好"
-	println("开始")
-	for {
-		select {
-		case msg := <-ch:
-			println(msg)
-		// some actions
-		case <-time.After(time.Second):
-			// timed out
-			println("After")
-			goto PrintIt
-			//default:
-			//	println("default")
-			//	ch <- "错误"
-			//	time.Sleep(time.Second * 3)
-		}
-	}
+	println("ni")
+
+	goto PrintIt
+	//// 消息列表
+	//ch := make(chan string, 255)
+	//// 定时从ch中取出所有数据
+	//ch <- "你好"
+	//println("开始")
+	//for {
+	//	select {
+	//	case msg := <-ch:
+	//		println(msg)
+	//	// some actions
+	//	case <-time.After(time.Second):
+	//		// timed out
+	//		println("After")
+	//		goto PrintIt
+	//		//default:
+	//		//	println("default")
+	//		//	ch <- "错误"
+	//		//	time.Sleep(time.Second * 3)
+	//	}
+	//}
 
 PrintIt:
 	{
