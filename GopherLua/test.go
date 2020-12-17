@@ -47,7 +47,7 @@ func getSimple(L *lua.LState) int {
 func main() {
 	gopherLua := GopherLua.NewState()
 	gopherLua.Register(CustomModule{})
-	err := gopherLua.DoFile("test/test.lua")
+	err := gopherLua.DoFile("GopherLua/test.lua")
 	if err != nil {
 		fmt.Println(err.Error())
 	}

@@ -25,6 +25,7 @@ require (
 	github.com/openzipkin/zipkin-go v0.2.2
 	github.com/parnurzeal/gorequest v0.2.16
 	github.com/reactivex/rxgo/v2 v2.1.0
+	github.com/robfig/cron v1.2.0
 	github.com/sirupsen/logrus v1.6.0 // indirect
 	github.com/sony/gobreaker v0.4.1 // indirect
 	github.com/tealeg/xlsx v1.0.5
@@ -34,6 +35,7 @@ require (
 	golang.org/x/net v0.0.0-20200602114024-627f9648deb9
 	golang.org/x/sys v0.0.0-20200909081042-eff7692f9009 // indirect
 	golang.org/x/text v0.3.2 // indirect
+	golang.org/x/time v0.0.0-20191024005414-555d28b269f0
 	google.golang.org/grpc v1.31.0 // indirect
 	gopkg.in/src-d/go-vitess.v0 v0.1.0 // indirect
 	layeh.com/gopher-luar v1.0.8

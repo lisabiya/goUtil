@@ -5,7 +5,7 @@ import (
 	socks5 "github.com/armon/go-socks5"
 )
 
-func main() {
+func main2() {
 	sock5Server()
 }
 
